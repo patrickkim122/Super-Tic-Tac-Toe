@@ -60,6 +60,9 @@ def possible_moves(board, miniboard):
             moves.append(i)
     return moves
 
+def evaluate_board():
+    pass
+
 # AI turn
 def next_move(player, depth):
     best_score = float('-inf')
