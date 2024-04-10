@@ -61,7 +61,7 @@ def possible_moves(board, miniboard):
     return moves
 
 def evaluate_board():
-    pass
+    return np.random.randint(1, 10)
 
 # AI turn
 def next_move(player, depth):
@@ -77,7 +77,7 @@ def next_move(player, depth):
             best_move = this_move
 
     if best_move:
-        boards[curr][best_move] = player
+        return best_move
 
 # Minimax Recursive Algorithm
 def minimax(depth, alpha, beta, is_maximising):
@@ -100,6 +100,8 @@ def minimax(depth, alpha, beta, is_maximising):
             boards[curr][move] = 2
             eval = minimax(depth - 1, alpha, beta, True)
             boards[curr][move] = EMPTY
+            # print(min_eval)
+            # print(eval)
             min_eval = min(min_eval, eval)
             beta = min(beta, eval)
             if beta <= alpha:
@@ -210,7 +212,9 @@ def main():
         if not text:
             continue
         for line in text.split("\n"):
+            # print(line)
             response = parse(line)
+            # print(response)
             if response == -1:
                 s.close()
                 return
