@@ -14,7 +14,7 @@ import math
 #   1 - We played here
 #   2 - Opponent played here
 
-EMPTY = 2
+EMPTY = 0
 
 ILLEGAL_MOVE  = 0
 STILL_PLAYING = 1
@@ -52,47 +52,65 @@ def print_board(board):
     print_board_row(board, 7,8,9,4,5,6)
     print_board_row(board, 7,8,9,7,8,9)
     print()
-
-# Calling the Minimax algorithm
-def doAlphaBeta(depth, turn):
-    finalScore = []
-    alphaBeta(depth, turn, math.inf, -math.inf)
     
-def alphaBeta(player, m, board, alpha, beta, best_move):
+def possible_moves(board, miniboard):
+    moves = []
+    for i in range(1, 10):
+        if board[miniboard][i] == EMPTY:
+            moves.append(i)
+    return moves
 
-    best_eval = MIN_EVAL
+# AI turn
+def next_move(player, depth):
+    best_score = float('-inf')
+    best_move = None
+    for move in possible_moves(boards, curr):
+        this_move = move
+        boards[curr][this_move] = player
+        score = minimax(depth, float('-inf'), float('inf'), False)  # Depth is set to 3 for demonstration
+        boards[curr][this_move] = EMPTY
+        if score > best_score:
+            best_score = score
+            best_move = this_move
 
-    if game_won( 1-player, board ):   # LOSS
-        return -1000 + m  # better to win faster (or lose slower)
+    if best_move:
+        boards[curr][best_move] = player
 
-    this_move = 0
-    for r in range( 1, 10):
-        if board[r] == EMPTY:         # move is legal
-            this_move = r
-            board[this_move] = player # make move
-            this_eval = -alphaBeta(1-player,m+1,board,-beta,-alpha,best_move)
-            board[this_move] = EMPTY  # undo move
-            if this_eval > best_eval:
-                best_move[m] = this_move
-                best_eval = this_eval
-                if best_eval > alpha:
-                    alpha = best_eval
-                    if alpha >= beta: # cutoff
-                        return( alpha )
-
-    if this_move == 0:  # no legal moves
-        return( 0 )     # DRAW
+# Minimax Recursive Algorithm
+def minimax(depth, alpha, beta, is_maximising):
+    if depth == 0:
+        return evaluate_board()
+    if is_maximising:
+        max_eval = float('-inf')
+        for move in possible_moves(boards, curr):
+            boards[curr][move] = 1
+            eval = minimax(depth - 1, alpha, beta, False)
+            boards[curr][move] = EMPTY
+            max_eval = max(max_eval, eval)
+            alpha = max(alpha, eval)
+            if beta <= alpha:
+                break
+        return max_eval
     else:
-        return( alpha )
+        min_eval = float('inf')
+        for move in possible_moves(boards, curr):
+            boards[curr][move] = 2
+            eval = minimax(depth - 1, alpha, beta, True)
+            boards[curr][move] = EMPTY
+            min_eval = min(min_eval, eval)
+            beta = min(beta, eval)
+            if beta <= alpha:
+                break
+        return min_eval
+
 
 # choose a move to play
 def play():
     # print_board(boards)
 
-    # just play a random move for now
-    n = np.random.randint(1,9)
-    while boards[curr][n] != 0:
-        n = np.random.randint(1,9)
+    # Calculate the next move
+    # Currently max depth is hard set at 5
+    n = next_move(1, 5)
 
     # print("playing", n)
     place(curr, n, 1)
