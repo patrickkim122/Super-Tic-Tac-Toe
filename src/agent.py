@@ -61,16 +61,39 @@ def possible_moves(board, miniboard):
     return moves
 
 def evaluate_board():
+    # If the move results in you winning that miniboard, give it the highest score possible
+    if minigame_won(1, boards, curr):
+        return MAX_EVAL
+    # If the move results in you losing that miniboard, give it the lowest score possible
+    elif minigame_won(2, boards, curr):
+        return MIN_EVAL
+    else:
+        curr_score = 0
+        if boards[curr][5] == 1:
+            curr_score += 10
+        elif boards[curr][5] == 2:
+            curr_score -= 10
+        for i in (1, 3, 7, 9):
+            if boards[curr][5] == 1:
+                curr_score += 5
+            elif boards[curr][5] == 2:
+                curr_score -= 5
+        return curr_score
+        
+    
     return np.random.randint(1, 10)
 
 # AI turn
+# This function will call the minimax function
+# After all the calculations are done, the move with the highest score is used
+# You need to figure out how to give each move a score in evaluate_board
 def next_move(player, depth):
     best_score = float('-inf')
     best_move = None
     for move in possible_moves(boards, curr):
         this_move = move
         boards[curr][this_move] = player
-        score = minimax(depth, float('-inf'), float('inf'), False)  # Depth is set to 3 for demonstration
+        score = minimax(depth, float('-inf'), float('inf'), False)  # Depth is set to 5 for speed
         boards[curr][this_move] = EMPTY
         if score > best_score:
             best_score = score
@@ -128,6 +151,7 @@ def place( board, num, player ):
     boards[board][num] = player
     
 # Check if game is won
+# I don't think this is needed, since the program already does this
 def game_won(p, bd):
     return(  ( bd[1][0] == p and bd[2][0] == p and bd[3][0] == p )
            or( bd[4][0] == p and bd[5][0] == p and bd[6][0] == p )
@@ -139,16 +163,16 @@ def game_won(p, bd):
            or( bd[3][0] == p and bd[5][0] == p and bd[7][0] == p ))
     
 # check if one cell is won
-def check_minigame_won( p, bd, curr ):
-    if ( bd[curr][1] == p and bd[curr][2] == p and bd[curr][3] == p )\
+# This isn't needed either
+def minigame_won( p, bd, curr ):
+    return( ( bd[curr][1] == p and bd[curr][2] == p and bd[curr][3] == p )\
         or ( bd[curr][4] == p and bd[curr][5] == p and bd[curr][6] == p )\
         or( bd[curr][7] == p and bd[curr][8] == p and bd[curr][9] == p )\
         or( bd[curr][1] == p and bd[curr][4] == p and bd[curr][7] == p )\
         or( bd[curr][2] == p and bd[curr][5] == p and bd[curr][8] == p )\
         or( bd[curr][3] == p and bd[curr][6] == p and bd[curr][9] == p )\
         or( bd[curr][1] == p and bd[curr][5] == p and bd[curr][9] == p )\
-        or( bd[curr][3] == p and bd[curr][5] == p and bd[curr][7] == p ):
-        bd[curr][0] = p
+        or( bd[curr][3] == p and bd[curr][5] == p and bd[curr][7] == p ))
 
 # read what the server sent us and
 # parse only the strings that are necessary
