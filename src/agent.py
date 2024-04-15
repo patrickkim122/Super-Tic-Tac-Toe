@@ -65,28 +65,43 @@ def evaluate_miniboard(miniboard, player):
     for i in range(1, 10):
         if boards[miniboard][i] == player:
             if i == 5:
+                sum += 3
+            elif i in (1, 3 , 7 ,9):
                 sum += 2
             else:
                 sum += 1
-    return sum
+        for j in range(1, 10):
+            if boards[i][j] == player:
+                if i == 5:
+                    sum += 3
+                elif i in (1, 3 , 7 ,9):
+                    sum += 2
+                else:
+                    sum += 1
+    # if game_won(player, boards, miniboard):
+    #     sum += 100
+    # if game_won(3 - player, boards, miniboard):
+    #     sum -= 100
+    return sum + np.random.rand()
 
-def evaluate_positions(curr_board):
+# def evaluate_positions(curr_board):
+def evaluate_board(depth, counter, curr_board):
     sum = 0
     for miniboard in range(1, 10):
         if miniboard != curr_board:
             sum += evaluate_miniboard(miniboard, 1) - evaluate_miniboard(miniboard, 2)
         else:
             sum += 2 * (evaluate_miniboard(miniboard, 1) - evaluate_miniboard(miniboard, 2))
-    return sum
+    return sum - depth
 
-def evaluate_board(depth, counter, curr_board):
-    if not game_won(1, boards, curr_board):
-        if not game_won(2, boards, curr_board):
-            return 0 + depth + evaluate_positions(curr_board)
-        else:
-            return -10 - depth - evaluate_positions(curr_board)
-    else:
-        return 10 + depth + evaluate_positions(curr_board)
+# def evaluate_board(depth, counter, curr_board):
+#     if not game_won(1, boards, curr_board):
+#         if not game_won(2, boards, curr_board):
+#             return 0 + depth + evaluate_positions(curr_board)
+#         else:
+#             return -10 - depth - evaluate_positions(curr_board)
+#     else:
+#         return 10 + depth + evaluate_positions(curr_board)
 
     # # If the move results in you winning that miniboard, give it the highest score possible
     # if game_won(1, boards, curr_board) and counter == 0:
