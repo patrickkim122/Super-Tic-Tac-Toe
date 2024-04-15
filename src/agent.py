@@ -60,36 +60,63 @@ def possible_moves(board, miniboard):
             moves.append(i)
     return moves
 
+def evaluate_miniboard(miniboard, player):
+    sum = 0
+    for i in range(1, 10):
+        if boards[miniboard][i] == player:
+            if i == 5:
+                sum += 2
+            else:
+                sum += 1
+    return sum
+
+def evaluate_positions(curr_board):
+    sum = 0
+    for miniboard in range(1, 10):
+        if miniboard != curr_board:
+            sum += evaluate_miniboard(miniboard, 1) - evaluate_miniboard(miniboard, 2)
+        else:
+            sum += 2 * (evaluate_miniboard(miniboard, 1) - evaluate_miniboard(miniboard, 2))
+    return sum
+
 def evaluate_board(depth, counter, curr_board):
-    # If the move results in you winning that miniboard, give it the highest score possible
-    if game_won(1, boards, curr_board) and counter == 0:
-        return MAX_EVAL - (5 - depth)
-    # If the move results in you losing that miniboard, give it the lowest score possible
-    elif game_won(2, boards, curr_board) and counter == 1:
-        return MIN_EVAL
-    elif counter == 0:
-        curr_score = 0
-        next_score = None
-        for i in range(1,10):
-            curr_score = 0
-            if boards[curr_board][i] == 1:
-                curr_score += 5
-                if i in (1, 3, 7, 9):
-                    curr_score += 1
-                elif i == 5:
-                    curr_score += 2          
-            elif boards[curr_board][i] == 2:
-                curr_score -= 5
-                if i in (1, 3, 7, 9):
-                    curr_score -= 1
-                elif i == 5:
-                    curr_score -= 2
-            curr_score += 2*np.random.rand()
-            # print(f"curr_board = {curr_board}, curr = {curr}")
-            next_score = evaluate_board(depth - 1, 1, i)
-        return curr_score if next_score is None else curr_score + next_score
+    if not game_won(1, boards, curr_board):
+        if not game_won(2, boards, curr_board):
+            return 0 + depth + evaluate_positions(curr_board)
+        else:
+            return -10 - depth - evaluate_positions(curr_board)
     else:
-        return 0
+        return 10 + depth + evaluate_positions(curr_board)
+
+    # # If the move results in you winning that miniboard, give it the highest score possible
+    # if game_won(1, boards, curr_board) and counter == 0:
+    #     return MAX_EVAL - (5 - depth)
+    # # If the move results in you losing that miniboard, give it the lowest score possible
+    # elif game_won(2, boards, curr_board) and counter == 1:
+    #     return MIN_EVAL
+    # elif counter == 0:
+    #     curr_score = 0
+    #     next_score = None
+    #     for i in range(1,10):
+    #         curr_score = 0
+    #         if boards[curr_board][i] == 1:
+    #             curr_score += 5
+    #             if i in (1, 3, 7, 9):
+    #                 curr_score += 1
+    #             elif i == 5:
+    #                 curr_score += 2          
+    #         elif boards[curr_board][i] == 2:
+    #             curr_score -= 5
+    #             if i in (1, 3, 7, 9):
+    #                 curr_score -= 1
+    #             elif i == 5:
+    #                 curr_score -= 2
+    #         curr_score += 2*np.random.rand()
+    #         # print(f"curr_board = {curr_board}, curr = {curr}")
+    #         next_score = evaluate_board(depth - 1, 1, i)
+    #     return curr_score if next_score is None else curr_score + next_score
+    # else:
+    #     return 0
         
     
 
@@ -104,7 +131,7 @@ def next_move(player, depth):
     for move in possible_moves(boards, curr):
         this_move = move
         boards[curr][this_move] = player
-        score = minimax(depth, float('-inf'), float('inf'), False)  # Depth is set to 5 for speed
+        score = minimax(depth, float('-inf'), float('inf'), True)  # Depth is set to 5 for speed
         boards[curr][this_move] = EMPTY
         if score > best_score:
             best_score = score
@@ -116,7 +143,8 @@ def next_move(player, depth):
 
 # Minimax Recursive Algorithm
 def minimax(depth, alpha, beta, is_maximising):
-    if depth == 0 or (is_maximising and evaluate_board(depth, 0, curr) >= MAX_EVAL - (5 - depth)) or (not is_maximising and evaluate_board(depth, 0, curr) == MIN_EVAL):
+    # if depth == 0 or (is_maximising and evaluate_board(depth, 0, curr) >= MAX_EVAL - (5 - depth)) or (not is_maximising and evaluate_board(depth, 0, curr) == MIN_EVAL):
+    if depth == 0 or game_won(1, boards, curr) or game_won(2, boards, curr):
         return evaluate_board(depth, 0, curr)
     if is_maximising:
         max_eval = float('-inf')
@@ -125,7 +153,7 @@ def minimax(depth, alpha, beta, is_maximising):
             eval = minimax(depth - 1, alpha, beta, False)
             boards[curr][move] = EMPTY
             max_eval = max(max_eval, eval)
-            alpha = max(alpha, eval)
+            alpha = max(alpha, max_eval)
             if beta <= alpha:
                 break
         return max_eval
@@ -138,7 +166,7 @@ def minimax(depth, alpha, beta, is_maximising):
             # print(min_eval)
             # print(eval)
             min_eval = min(min_eval, eval)
-            beta = min(beta, eval)
+            beta = min(beta, min_eval)
             if beta <= alpha:
                 break
         return min_eval
