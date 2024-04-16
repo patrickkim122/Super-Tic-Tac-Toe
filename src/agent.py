@@ -60,28 +60,108 @@ def possible_moves(board, miniboard):
             moves.append(i)
     return moves
 
-def evaluate_board():
-    # If the move results in you winning that miniboard, give it the highest score possible
-    if minigame_won(1, boards, curr):
-        return MAX_EVAL
-    # If the move results in you losing that miniboard, give it the lowest score possible
-    elif minigame_won(2, boards, curr):
-        return MIN_EVAL
-    else:
-        curr_score = 0
-        if boards[curr][5] == 1:
-            curr_score += 10
-        elif boards[curr][5] == 2:
-            curr_score -= 10
-        for i in (1, 3, 7, 9):
-            if boards[curr][5] == 1:
-                curr_score += 5
-            elif boards[curr][5] == 2:
-                curr_score -= 5
-        return curr_score
+# Evaluates a single miniboard
+def evaluate_miniboard(miniboard, player):
+    sum = 0
+    # Check all three horizontal lines, all three vertical lines and both diagonal lines
+    for indices in ([1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 4, 7], [2, 5, 8], [3, 6, 9], [1, 5, 9], [3, 5, 7]):
+        line = []
+        for index in indices:
+            line.append(boards[miniboard][index])
+            # if there are 3 in a row
+            if line.count(player) == 3:
+                sum += 100
+            # 2 in a row and last one is blank
+            elif line.count(player) == 2 and line.count(3 - player) == 0:
+                sum += 40
+            # other player
+            if line.count(3 - player) == 3:
+                sum -= 100
+            elif line.count(3 - player) == 2 and line.count(player) == 0:
+                sum -= 40
+    return sum + np.random.rand()
+    
+    # sum = 0
+    # for i in range(1, 10):
+    #     if boards[miniboard][i] == player:
+    #         if i == 5:
+    #             sum += 3
+    #         elif i in (1, 3 , 7 ,9):
+    #             sum += 2
+    #         else:
+    #             sum += 1
+    #     for j in range(1, 10):
+    #         if boards[i][j] == player:
+    #             if i == 5:
+    #                 sum += 3
+    #             elif i in (1, 3 , 7 ,9):
+    #                 sum += 2
+    #             else:
+    #                 sum += 1
+                    
+                    
+    # if game_won(player, boards, miniboard):
+    #     sum += 100
+    # if game_won(3 - player, boards, miniboard):
+    #     sum -= 100
+
+
+# This functions evaluates the whole board
+def evaluate_board(depth, counter, curr_board):
+    sum = 0
+    if depth != 0:
+        if game_won(1, boards, curr_board):
+            sum += 10000
+        else:
+            sum -= 10000
+    for miniboard in range(1, 10):
+        if miniboard != curr_board:
+            sum += evaluate_miniboard(miniboard, 1)
+        else:
+            sum += 2 * (evaluate_miniboard(miniboard, 1))
+    return sum + 100*depth
+
+# def evaluate_board(depth, counter, curr_board):
+#     if not game_won(1, boards, curr_board):
+#         if not game_won(2, boards, curr_board):
+#             return 0 + depth + evaluate_positions(curr_board)
+#         else:
+#             return -10 - depth - evaluate_positions(curr_board)
+#     else:
+#         return 10 + depth + evaluate_positions(curr_board)
+
+    # # If the move results in you winning that miniboard, give it the highest score possible
+    # if game_won(1, boards, curr_board) and counter == 0:
+    #     return MAX_EVAL - (5 - depth)
+    # # If the move results in you losing that miniboard, give it the lowest score possible
+    # elif game_won(2, boards, curr_board) and counter == 1:
+    #     return MIN_EVAL
+    # elif counter == 0:
+    #     curr_score = 0
+    #     next_score = None
+    #     for i in range(1,10):
+    #         curr_score = 0
+    #         if boards[curr_board][i] == 1:
+    #             curr_score += 5
+    #             if i in (1, 3, 7, 9):
+    #                 curr_score += 1
+    #             elif i == 5:
+    #                 curr_score += 2          
+    #         elif boards[curr_board][i] == 2:
+    #             curr_score -= 5
+    #             if i in (1, 3, 7, 9):
+    #                 curr_score -= 1
+    #             elif i == 5:
+    #                 curr_score -= 2
+    #         curr_score += 2*np.random.rand()
+    #         # print(f"curr_board = {curr_board}, curr = {curr}")
+    #         next_score = evaluate_board(depth - 1, 1, i)
+    #     return curr_score if next_score is None else curr_score + next_score
+    # else:
+    #     return 0
         
     
-    return np.random.randint(1, 10)
+
 
 # AI turn
 # This function will call the minimax function
@@ -93,19 +173,22 @@ def next_move(player, depth):
     for move in possible_moves(boards, curr):
         this_move = move
         boards[curr][this_move] = player
-        score = minimax(depth, float('-inf'), float('inf'), False)  # Depth is set to 5 for speed
+        score = minimax(depth, float('-inf'), float('inf'), True)  # Depth is set to 5 for speed
         boards[curr][this_move] = EMPTY
         if score > best_score:
             best_score = score
             best_move = this_move
 
     if best_move:
+        print(f"best reply to {curr} is {best_move} with a score of {best_score}")
         return best_move
 
 # Minimax Recursive Algorithm
 def minimax(depth, alpha, beta, is_maximising):
-    if depth == 0:
-        return evaluate_board()
+    # if depth == 0 or (is_maximising and evaluate_board(depth, 0, curr) >= MAX_EVAL - (5 - depth)) or (not is_maximising and evaluate_board(depth, 0, curr) == MIN_EVAL):
+    if depth == 0 or game_won(1, boards, curr) or game_won(2, boards, curr):
+    # if depth == 0:
+        return evaluate_board(depth, 0, curr)
     if is_maximising:
         max_eval = float('-inf')
         for move in possible_moves(boards, curr):
@@ -113,7 +196,7 @@ def minimax(depth, alpha, beta, is_maximising):
             eval = minimax(depth - 1, alpha, beta, False)
             boards[curr][move] = EMPTY
             max_eval = max(max_eval, eval)
-            alpha = max(alpha, eval)
+            alpha = max(alpha, max_eval)
             if beta <= alpha:
                 break
         return max_eval
@@ -126,7 +209,7 @@ def minimax(depth, alpha, beta, is_maximising):
             # print(min_eval)
             # print(eval)
             min_eval = min(min_eval, eval)
-            beta = min(beta, eval)
+            beta = min(beta, min_eval)
             if beta <= alpha:
                 break
         return min_eval
@@ -138,7 +221,7 @@ def play():
 
     # Calculate the next move
     # Currently max depth is hard set at 5
-    n = next_move(1, 5)
+    n = next_move(1, 3)
 
     # print("playing", n)
     place(curr, n, 1)
@@ -150,21 +233,20 @@ def place( board, num, player ):
     curr = num
     boards[board][num] = player
     
-# Check if game is won
-# I don't think this is needed, since the program already does this
-def game_won(p, bd):
-    return(  ( bd[1][0] == p and bd[2][0] == p and bd[3][0] == p )
-           or( bd[4][0] == p and bd[5][0] == p and bd[6][0] == p )
-           or( bd[7][0] == p and bd[8][0] == p and bd[9][0] == p )
-           or( bd[1][0] == p and bd[4][0] == p and bd[7][0] == p )
-           or( bd[2][0] == p and bd[5][0] == p and bd[8][0] == p )
-           or( bd[3][0] == p and bd[6][0] == p and bd[9][0] == p )
-           or( bd[1][0] == p and bd[5][0] == p and bd[9][0] == p )
-           or( bd[3][0] == p and bd[5][0] == p and bd[7][0] == p ))
+# Check if the opponent will win on the next move
+# def throwing(p, bd):
+#     return(  ( bd[1][0] == p and bd[2][0] == p and bd[3][0] == p )
+#            or( bd[4][0] == p and bd[5][0] == p and bd[6][0] == p )
+#            or( bd[7][0] == p and bd[8][0] == p and bd[9][0] == p )
+#            or( bd[1][0] == p and bd[4][0] == p and bd[7][0] == p )
+#            or( bd[2][0] == p and bd[5][0] == p and bd[8][0] == p )
+#            or( bd[3][0] == p and bd[6][0] == p and bd[9][0] == p )
+#            or( bd[1][0] == p and bd[5][0] == p and bd[9][0] == p )
+#            or( bd[3][0] == p and bd[5][0] == p and bd[7][0] == p ))
     
 # check if one cell is won
 # This isn't needed either
-def minigame_won( p, bd, curr ):
+def game_won( p, bd, curr ):
     return( ( bd[curr][1] == p and bd[curr][2] == p and bd[curr][3] == p )\
         or ( bd[curr][4] == p and bd[curr][5] == p and bd[curr][6] == p )\
         or( bd[curr][7] == p and bd[curr][8] == p and bd[curr][9] == p )\
@@ -194,6 +276,7 @@ def parse(string):
     # and we are expected to return the second move.
     if command == "second_move":
         # place the first move (randomly generated for opponent)
+        print(f"first move was {int(args[0]), int(args[1])}")
         place(int(args[0]), int(args[1]), 2)
         return play()  # choose and return the second move
 
@@ -203,7 +286,9 @@ def parse(string):
     elif command == "third_move":
         # place the first move (randomly generated for us)
         place(int(args[0]), int(args[1]), 1)
+        print(f"first move was {int(args[0]), int(args[1])}")
         # place the second move (chosen by opponent)
+        print(f"second move was {curr, int(args[2])}")
         place(curr, int(args[2]), 2)
         return play() # choose and return the third move
 
