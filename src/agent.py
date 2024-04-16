@@ -60,39 +60,66 @@ def possible_moves(board, miniboard):
             moves.append(i)
     return moves
 
+# Evaluates a single miniboard
 def evaluate_miniboard(miniboard, player):
     sum = 0
-    for i in range(1, 10):
-        if boards[miniboard][i] == player:
-            if i == 5:
-                sum += 3
-            elif i in (1, 3 , 7 ,9):
-                sum += 2
-            else:
-                sum += 1
-        for j in range(1, 10):
-            if boards[i][j] == player:
-                if i == 5:
-                    sum += 3
-                elif i in (1, 3 , 7 ,9):
-                    sum += 2
-                else:
-                    sum += 1
+    # Check all three horizontal lines, all three vertical lines and both diagonal lines
+    for indices in ([1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 4, 7], [2, 5, 8], [3, 6, 9], [1, 5, 9], [3, 5, 7]):
+        line = []
+        for index in indices:
+            line.append(boards[miniboard][index])
+            # if there are 3 in a row
+            if line.count(player) == 3:
+                sum += 100
+            # 2 in a row and last one is blank
+            elif line.count(player) == 2 and line.count(3 - player) == 0:
+                sum += 40
+            # other player
+            if line.count(3 - player) == 3:
+                sum -= 100
+            elif line.count(3 - player) == 2 and line.count(player) == 0:
+                sum -= 40
+    return sum + np.random.rand()
+    
+    # sum = 0
+    # for i in range(1, 10):
+    #     if boards[miniboard][i] == player:
+    #         if i == 5:
+    #             sum += 3
+    #         elif i in (1, 3 , 7 ,9):
+    #             sum += 2
+    #         else:
+    #             sum += 1
+    #     for j in range(1, 10):
+    #         if boards[i][j] == player:
+    #             if i == 5:
+    #                 sum += 3
+    #             elif i in (1, 3 , 7 ,9):
+    #                 sum += 2
+    #             else:
+    #                 sum += 1
+                    
+                    
     # if game_won(player, boards, miniboard):
     #     sum += 100
     # if game_won(3 - player, boards, miniboard):
     #     sum -= 100
-    return sum + np.random.rand()
 
-# def evaluate_positions(curr_board):
+
+# This functions evaluates the whole board
 def evaluate_board(depth, counter, curr_board):
     sum = 0
+    if depth != 0:
+        if game_won(1, boards, curr_board):
+            sum += 10000
+        else:
+            sum -= 10000
     for miniboard in range(1, 10):
         if miniboard != curr_board:
-            sum += evaluate_miniboard(miniboard, 1) - evaluate_miniboard(miniboard, 2)
+            sum += evaluate_miniboard(miniboard, 1)
         else:
-            sum += 2 * (evaluate_miniboard(miniboard, 1) - evaluate_miniboard(miniboard, 2))
-    return sum - depth
+            sum += 2 * (evaluate_miniboard(miniboard, 1))
+    return sum + 100*depth
 
 # def evaluate_board(depth, counter, curr_board):
 #     if not game_won(1, boards, curr_board):
@@ -160,6 +187,7 @@ def next_move(player, depth):
 def minimax(depth, alpha, beta, is_maximising):
     # if depth == 0 or (is_maximising and evaluate_board(depth, 0, curr) >= MAX_EVAL - (5 - depth)) or (not is_maximising and evaluate_board(depth, 0, curr) == MIN_EVAL):
     if depth == 0 or game_won(1, boards, curr) or game_won(2, boards, curr):
+    # if depth == 0:
         return evaluate_board(depth, 0, curr)
     if is_maximising:
         max_eval = float('-inf')
@@ -193,7 +221,7 @@ def play():
 
     # Calculate the next move
     # Currently max depth is hard set at 5
-    n = next_move(1, 5)
+    n = next_move(1, 3)
 
     # print("playing", n)
     place(curr, n, 1)
