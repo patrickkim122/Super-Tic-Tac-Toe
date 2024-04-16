@@ -1,0 +1,36 @@
+first move was (7, 9)
+second move was (9, 2)
+Calculating value from moves: [1, 2, 3]
+1
+1
+1
+1
+1
+1
+1
+1
+1
+Calculating value from moves: [1, 4]
+1
+1
+Potential 2 in a row for us: [1, 4, 7] on board 2
+Potential 2 in a row for us: [1, 4, 7] on board 2
+1
+1
+1
+1
+1
+1
+1
+Calculating value from moves: [5]
+1
+1
+Potential 2 in a row for us: [1, 5, 9] on board 2
+Potential 2 in a row for us: [1, 5, 9] on board 2
+1
+1
+1
+1
+1
+1
+1
