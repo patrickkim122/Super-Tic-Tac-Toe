@@ -1,0 +1,3 @@
+first move was (7, 9)
+second move was (9, 9)
+We lost :(

@@ -31,6 +31,7 @@ MAX_EVAL =  1000000
 boards = np.zeros((10, 10), dtype="int8")
 s = [".","X","O"]
 curr = 0 # this is the current board to play in
+max_depth = 0
 
 # print a row
 def print_board_row(bd, a, b, c, i, j, k):
@@ -61,8 +62,13 @@ def possible_moves(board, miniboard):
     return moves
 
 # Evaluates a single miniboard
-def evaluate_miniboard(miniboard, player):
+def evaluate_miniboard(miniboard, player, move_hist):
     sum = 0
+    multiplier = 1
+    # Set a multiplier
+    # If miniboard is going to be played next, double the number
+    if miniboard == move_hist[-1]:
+        multiplier = 2
     # Check all three horizontal lines, all three vertical lines and both diagonal lines
     for indices in ([1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 4, 7], [2, 5, 8], [3, 6, 9], [1, 5, 9], [3, 5, 7]):
         line = []
@@ -70,15 +76,19 @@ def evaluate_miniboard(miniboard, player):
             line.append(boards[miniboard][index])
             # if there are 3 in a row
             if line.count(player) == 3:
-                sum += 100
+                # print(f"Potential 3 in a row for us: {indices} from {boards[miniboard]} on board {miniboard}")
+                sum += 1000*multiplier
             # 2 in a row and last one is blank
             elif line.count(player) == 2 and line.count(3 - player) == 0:
-                sum += 40
+                # print(f"Potential 2 in a row for us: {indices} from {boards[miniboard]} on board {miniboard}")
+                sum += 100*multiplier
             # other player
-            if line.count(3 - player) == 3:
-                sum -= 100
+            elif line.count(3 - player) == 3:
+                sum -= 1000*multiplier
+                # print(f"Potential 3 in a row for the opponent: {indices} from {boards[miniboard]} on board {miniboard}")
             elif line.count(3 - player) == 2 and line.count(player) == 0:
-                sum -= 40
+                # print(f"Potential 2 in a row for the opponent: {indices} from {boards[miniboard]} on board {miniboard}")
+                sum -= 100*multiplier
     return sum + np.random.rand()
     
     # sum = 0
@@ -107,18 +117,17 @@ def evaluate_miniboard(miniboard, player):
 
 
 # This functions evaluates the whole board
-def evaluate_board(depth, counter, curr_board):
+def evaluate_board(depth, move_hist):
+    # print(f"Calculating value from moves: {move_hist}")
     sum = 0
     if depth != 0:
-        if game_won(1, boards, curr_board):
+        if game_won(1, boards, move_hist[-1]):
             sum += 10000
         else:
             sum -= 10000
+        return sum
     for miniboard in range(1, 10):
-        if miniboard != curr_board:
-            sum += evaluate_miniboard(miniboard, 1)
-        else:
-            sum += 2 * (evaluate_miniboard(miniboard, 1))
+        sum += evaluate_miniboard(miniboard, 1, move_hist)
     return sum + 100*depth
 
 # def evaluate_board(depth, counter, curr_board):
@@ -171,30 +180,35 @@ def next_move(player, depth):
     best_score = float('-inf')
     best_move = None
     for move in possible_moves(boards, curr):
+        move_hist = []
         this_move = move
         boards[curr][this_move] = player
-        score = minimax(depth, float('-inf'), float('inf'), True)  # Depth is set to 5 for speed
+        move_hist.append(this_move)
+        score = minimax(depth, float('-inf'), float('inf'), False, move_hist)  # Depth is set to 5 for speed
         boards[curr][this_move] = EMPTY
+        move_hist.pop()
         if score > best_score:
             best_score = score
             best_move = this_move
+            # print(f"Better move found: {this_move} on board {curr} with score {best_score}")
 
-    if best_move:
-        print(f"best reply to {curr} is {best_move} with a score of {best_score}")
-        return best_move
+    # print(f"best reply to {curr} is {best_move} with a score of {best_score}")
+    return best_move
 
 # Minimax Recursive Algorithm
-def minimax(depth, alpha, beta, is_maximising):
+def minimax(depth, alpha, beta, is_maximising, move_hist):
     # if depth == 0 or (is_maximising and evaluate_board(depth, 0, curr) >= MAX_EVAL - (5 - depth)) or (not is_maximising and evaluate_board(depth, 0, curr) == MIN_EVAL):
-    if depth == 0 or game_won(1, boards, curr) or game_won(2, boards, curr):
+    if depth == 0 or game_won(1, boards, move_hist[-1]) or game_won(2, boards, move_hist[-1]):
     # if depth == 0:
-        return evaluate_board(depth, 0, curr)
+        return evaluate_board(depth, move_hist)
     if is_maximising:
         max_eval = float('-inf')
-        for move in possible_moves(boards, curr):
-            boards[curr][move] = 1
-            eval = minimax(depth - 1, alpha, beta, False)
-            boards[curr][move] = EMPTY
+        for move in possible_moves(boards, move_hist[-1]):
+            boards[move_hist[-1]][move] = 1
+            move_hist.append(move)
+            eval = minimax(depth - 1, alpha, beta, False, move_hist)
+            move_hist.pop()
+            boards[move_hist[-1]][move] = EMPTY
             max_eval = max(max_eval, eval)
             alpha = max(alpha, max_eval)
             if beta <= alpha:
@@ -202,10 +216,12 @@ def minimax(depth, alpha, beta, is_maximising):
         return max_eval
     else:
         min_eval = float('inf')
-        for move in possible_moves(boards, curr):
-            boards[curr][move] = 2
-            eval = minimax(depth - 1, alpha, beta, True)
-            boards[curr][move] = EMPTY
+        for move in possible_moves(boards, move_hist[-1]):
+            boards[move_hist[-1]][move] = 2
+            move_hist.append(move)
+            eval = minimax(depth - 1, alpha, beta, True, move_hist)
+            move_hist.pop()
+            boards[move_hist[-1]][move] = EMPTY
             # print(min_eval)
             # print(eval)
             min_eval = min(min_eval, eval)
@@ -221,7 +237,9 @@ def play():
 
     # Calculate the next move
     # Currently max depth is hard set at 5
-    n = next_move(1, 3)
+    global max_depth
+    max_depth = 3
+    n = next_move(1, max_depth)
 
     # print("playing", n)
     place(curr, n, 1)
