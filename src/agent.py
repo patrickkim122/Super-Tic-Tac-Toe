@@ -4,15 +4,38 @@
 #  COMP3411/9814 Artificial Intelligence
 #  CSE, UNSW
 
+# SUMMARY:
+# This Python script employs a meticulously designed algorithmic structure to 
+# guide an AI agent to victory in Nine-Board Tic-Tac-Toe. At its core, the 
+# system features dynamic assessment functions for individual mini-boards and 
+# the overall game board, calculating scores based on critical game situations
+# and strategic placements. Leveraging numpy arrays for robust representation,
+# the agent adeptly manages the game's complexity. Decision-making is powered by
+# the minimax algorithm, augmented with alpha-beta pruning for computational 
+# efficiency. This algorithm navigates potential game states recursively, 
+# evaluating board states and selecting optimal moves based on calculated 
+# scores. The AI agent adeptly responds to opponent actions while strategically
+# positioning itself for victory in the dynamic landscape of Nine-Board
+# Tic-Tac-Toe.
+
+# To enhance the AI agent's performance in Nine-Board Tic-Tac-Toe, several 
+# design choices were carefully made. The utilisation of NumPy arrays for game 
+# state representation ensured efficient board manipulation, striking a balance 
+# between simplicity and computational speed. Separating evaluation functions 
+# for mini-boards and the overall game board enabled nuanced assessments of game
+# states, considering factors like winning positions and strategic advantages. 
+# The decision to employ the minimax algorithm with alpha-beta pruning aimed to 
+# optimise computational resources while ensuring optimal move selection. 
+# Additionally, incorporating input parsing facilitated dynamic adaptation to 
+# opponent moves, enabling informed decision-making and strategic adjustments. 
+# Finally, imposing a depth limitation on the minimax search tree maintained a 
+# balance between decision quality and computational efficiency, ensuring smooth 
+# gameplay while maximising the AI agent's performance in navigating the 
+# complexities of Nine-Board Tic-Tac-Toe.
+
 import socket
 import sys
 import numpy as np
-import math
-
-# a board cell can hold:
-#   0 - Empty
-#   1 - We played here
-#   2 - Opponent played here
 
 EMPTY = 0
 
@@ -119,16 +142,11 @@ def next_move(player, depth):
         if score > best_score:
             best_score = score
             best_move = this_move
-            # print(f"Better move found: {this_move} on board {curr} with score {best_score}")
-
-    # print(f"best reply to {curr} is {best_move} with a score of {best_score}")
     return best_move
 
 # Minimax Recursive Algorithm
 def minimax(depth, alpha, beta, is_maximising, move_hist):
-    # if depth == 0 or (is_maximising and evaluate_board(depth, 0, curr) >= MAX_EVAL - (5 - depth)) or (not is_maximising and evaluate_board(depth, 0, curr) == MIN_EVAL):
     if depth == 0 or game_won(1, boards, move_hist[-1]) or game_won(2, boards, move_hist[-1]):
-    # if depth == 0:
         return evaluate_board(depth, move_hist)
     if is_maximising:
         max_eval = float('-inf')
@@ -151,8 +169,6 @@ def minimax(depth, alpha, beta, is_maximising, move_hist):
             eval = minimax(depth - 1, alpha, beta, True, move_hist)
             move_hist.pop()
             boards[move_hist[-1]][move] = EMPTY
-            # print(min_eval)
-            # print(eval)
             min_eval = min(min_eval, eval)
             beta = min(beta, min_eval)
             if beta <= alpha:
@@ -162,15 +178,11 @@ def minimax(depth, alpha, beta, is_maximising, move_hist):
 
 # choose a move to play
 def play():
-    # print_board(boards)
-
     # Calculate the next move
     # Currently max depth is hard set at 5
     global max_depth
     max_depth = 3
     n = next_move(1, max_depth)
-
-    # print("playing", n)
     place(curr, n, 1)
     return n
 
@@ -181,7 +193,6 @@ def place( board, num, player ):
     boards[board][num] = player
     
 # check if one cell is won
-# This isn't needed either
 def game_won( p, bd, curr ):
     return( ( bd[curr][1] == p and bd[curr][2] == p and bd[curr][3] == p )\
         or ( bd[curr][4] == p and bd[curr][5] == p and bd[curr][6] == p )\
