@@ -76,45 +76,16 @@ def evaluate_miniboard(miniboard, player, move_hist):
             line.append(boards[miniboard][index])
             # if there are 3 in a row
             if line.count(player) == 3:
-                # print(f"Potential 3 in a row for us: {indices} from {boards[miniboard]} on board {miniboard}")
                 sum += 1000*multiplier
             # 2 in a row and last one is blank
             elif line.count(player) == 2 and line.count(3 - player) == 0:
-                # print(f"Potential 2 in a row for us: {indices} from {boards[miniboard]} on board {miniboard}")
                 sum += 100*multiplier
             # other player
             elif line.count(3 - player) == 3:
                 sum -= 1000*multiplier
-                # print(f"Potential 3 in a row for the opponent: {indices} from {boards[miniboard]} on board {miniboard}")
             elif line.count(3 - player) == 2 and line.count(player) == 0:
-                # print(f"Potential 2 in a row for the opponent: {indices} from {boards[miniboard]} on board {miniboard}")
                 sum -= 100*multiplier
     return sum + np.random.rand()
-    
-    # sum = 0
-    # for i in range(1, 10):
-    #     if boards[miniboard][i] == player:
-    #         if i == 5:
-    #             sum += 3
-    #         elif i in (1, 3 , 7 ,9):
-    #             sum += 2
-    #         else:
-    #             sum += 1
-    #     for j in range(1, 10):
-    #         if boards[i][j] == player:
-    #             if i == 5:
-    #                 sum += 3
-    #             elif i in (1, 3 , 7 ,9):
-    #                 sum += 2
-    #             else:
-    #                 sum += 1
-                    
-                    
-    # if game_won(player, boards, miniboard):
-    #     sum += 100
-    # if game_won(3 - player, boards, miniboard):
-    #     sum -= 100
-
 
 # This functions evaluates the whole board
 def evaluate_board(depth, move_hist):
@@ -129,48 +100,6 @@ def evaluate_board(depth, move_hist):
     for miniboard in range(1, 10):
         sum += evaluate_miniboard(miniboard, 1, move_hist)
     return sum + 100*depth
-
-# def evaluate_board(depth, counter, curr_board):
-#     if not game_won(1, boards, curr_board):
-#         if not game_won(2, boards, curr_board):
-#             return 0 + depth + evaluate_positions(curr_board)
-#         else:
-#             return -10 - depth - evaluate_positions(curr_board)
-#     else:
-#         return 10 + depth + evaluate_positions(curr_board)
-
-    # # If the move results in you winning that miniboard, give it the highest score possible
-    # if game_won(1, boards, curr_board) and counter == 0:
-    #     return MAX_EVAL - (5 - depth)
-    # # If the move results in you losing that miniboard, give it the lowest score possible
-    # elif game_won(2, boards, curr_board) and counter == 1:
-    #     return MIN_EVAL
-    # elif counter == 0:
-    #     curr_score = 0
-    #     next_score = None
-    #     for i in range(1,10):
-    #         curr_score = 0
-    #         if boards[curr_board][i] == 1:
-    #             curr_score += 5
-    #             if i in (1, 3, 7, 9):
-    #                 curr_score += 1
-    #             elif i == 5:
-    #                 curr_score += 2          
-    #         elif boards[curr_board][i] == 2:
-    #             curr_score -= 5
-    #             if i in (1, 3, 7, 9):
-    #                 curr_score -= 1
-    #             elif i == 5:
-    #                 curr_score -= 2
-    #         curr_score += 2*np.random.rand()
-    #         # print(f"curr_board = {curr_board}, curr = {curr}")
-    #         next_score = evaluate_board(depth - 1, 1, i)
-    #     return curr_score if next_score is None else curr_score + next_score
-    # else:
-    #     return 0
-        
-    
-
 
 # AI turn
 # This function will call the minimax function
@@ -250,17 +179,6 @@ def place( board, num, player ):
     global curr
     curr = num
     boards[board][num] = player
-    
-# Check if the opponent will win on the next move
-# def throwing(p, bd):
-#     return(  ( bd[1][0] == p and bd[2][0] == p and bd[3][0] == p )
-#            or( bd[4][0] == p and bd[5][0] == p and bd[6][0] == p )
-#            or( bd[7][0] == p and bd[8][0] == p and bd[9][0] == p )
-#            or( bd[1][0] == p and bd[4][0] == p and bd[7][0] == p )
-#            or( bd[2][0] == p and bd[5][0] == p and bd[8][0] == p )
-#            or( bd[3][0] == p and bd[6][0] == p and bd[9][0] == p )
-#            or( bd[1][0] == p and bd[5][0] == p and bd[9][0] == p )
-#            or( bd[3][0] == p and bd[5][0] == p and bd[7][0] == p ))
     
 # check if one cell is won
 # This isn't needed either
