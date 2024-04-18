@@ -257,7 +257,7 @@ def parse(string):
 
     return 0
 
-# connect to socket
+# Connect to socket
 def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     port = int(sys.argv[2]) # Usage: ./agent.py -p (port)
@@ -268,9 +268,7 @@ def main():
         if not text:
             continue
         for line in text.split("\n"):
-            # print(line)
             response = parse(line)
-            # print(response)
             if response == -1:
                 s.close()
                 return
