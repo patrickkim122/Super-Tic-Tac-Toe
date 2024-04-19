@@ -1,37 +1,39 @@
 #!/usr/bin/python3
-#  agent.py
-#  Nine-Board Tic-Tac-Toe Agent starter code
-#  COMP3411/9814 Artificial Intelligence
-#  CSE, UNSW
+# agent.py
+# Nine-Board Tic-Tac-Toe Agent starter code
+# COMP3411/9814 Artificial Intelligence
+# CSE, UNSW
 
-# SUMMARY:
-# This Python script employs a meticulously designed algorithmic structure to
-# guide an AI agent to victory in Nine-Board Tic-Tac-Toe. At its core, the
-# system features dynamic assessment functions for individual mini-boards and
-# the overall game board, calculating scores based on critical game situations
-# and strategic placements. Leveraging numpy arrays for robust representation,
-# the agent adeptly manages the game's complexity. Decision-making is powered by
-# the minimax algorithm, augmented with alpha-beta pruning for computational
-# efficiency. This algorithm navigates potential game states recursively,
-# evaluating board states and selecting optimal moves based on calculated
-# scores. The AI agent adeptly responds to opponent actions while strategically
-# positioning itself for victory in the dynamic landscape of Nine-Board
-# Tic-Tac-Toe.
+'''
+SUMMARY:
+This Python script employs a meticulously designed algorithmic structure to
+guide an AI agent to victory in Nine-Board Tic-Tac-Toe. At its core, the
+system features dynamic assessment functions for individual mini-boards and
+the overall game board, calculating scores based on critical game situations
+and strategic placements. Leveraging numpy arrays for robust representation,
+the agent adeptly manages the game's complexity. Decision-making is powered by
+the minimax algorithm, augmented with alpha-beta pruning for computational
+efficiency. This algorithm navigates potential game states recursively,
+evaluating board states and selecting optimal moves based on calculated
+scores. The AI agent adeptly responds to opponent actions while strategically
+positioning itself for victory in the dynamic landscape of Nine-Board
+Tic-Tac-Toe.
 
-# To enhance the AI agent's performance in Nine-Board Tic-Tac-Toe, several
-# design choices were carefully made. The utilisation of NumPy arrays for game
-# state representation ensured efficient board manipulation, striking a balance
-# between simplicity and computational speed. Separating evaluation functions
-# for mini-boards and the overall game board enabled nuanced assessments of game
-# states, considering factors like winning positions and strategic advantages.
-# The decision to employ the minimax algorithm with alpha-beta pruning aimed to
-# optimise computational resources while ensuring optimal move selection.
-# Additionally, incorporating input parsing facilitated dynamic adaptation to
-# opponent moves, enabling informed decision-making and strategic adjustments.
-# Finally, imposing a depth limitation on the minimax search tree maintained a
-# balance between decision quality and computational efficiency, ensuring smooth
-# gameplay while maximising the AI agent's performance in navigating the
-# complexities of Nine-Board Tic-Tac-Toe.
+To enhance the AI agent's performance in Nine-Board Tic-Tac-Toe, several
+design choices were carefully made. The utilisation of NumPy arrays for game
+state representation ensured efficient board manipulation, striking a balance
+between simplicity and computational speed. Separating evaluation functions
+for mini-boards and the overall game board enabled nuanced assessments of game
+states, considering factors like winning positions and strategic advantages.
+The decision to employ the minimax algorithm with alpha-beta pruning aimed to
+optimise computational resources while ensuring optimal move selection.
+Additionally, incorporating input parsing facilitated dynamic adaptation to
+opponent moves, enabling informed decision-making and strategic adjustments.
+Finally, imposing a depth limitation on the minimax search tree maintained a
+balance between decision quality and computational efficiency, ensuring smooth
+gameplay while maximising the AI agent's performance in navigating the
+complexities of Nine-Board Tic-Tac-Toe.
+'''
 
 import socket
 import sys
@@ -57,8 +59,16 @@ curr = 0  # this is the current board to play in
 max_depth = 0
 
 
-# print a row
+# Print a single row of the board
 def print_board_row(bd, a, b, c, i, j, k):
+    """
+    Print a single row of the Nine-Board Tic-Tac-Toe grid.
+
+    Args:
+        bd (numpy.ndarray): The game board.
+        a, b, c (int): Indices of mini-boards in the current row.
+        i, j, k (int): Indices of cells in the current row.
+    """
     print(
         " "
         + s[bd[a][i]]
@@ -83,6 +93,12 @@ def print_board_row(bd, a, b, c, i, j, k):
 
 # Print the entire board
 def print_board(board):
+    """
+    Print the entire Nine-Board Tic-Tac-Toe grid.
+
+    Args:
+        board (numpy.ndarray): The game board.
+    """
     print_board_row(board, 1, 2, 3, 1, 2, 3)
     print_board_row(board, 1, 2, 3, 4, 5, 6)
     print_board_row(board, 1, 2, 3, 7, 8, 9)
@@ -97,7 +113,18 @@ def print_board(board):
     print()
 
 
+# List possible moves in a mini-board
 def possible_moves(board, miniboard):
+    """
+    List possible moves in a mini-board.
+
+    Args:
+        board (numpy.ndarray): The game board.
+        miniboard (int): Index of the mini-board.
+
+    Returns:
+        list: List of possible moves.
+    """
     moves = []
     for i in range(1, 10):
         if board[miniboard][i] == EMPTY:
@@ -105,8 +132,19 @@ def possible_moves(board, miniboard):
     return moves
 
 
-# Evaluates a single miniboard
+# Evaluate a single mini-board
 def evaluate_miniboard(miniboard, player, move_hist):
+    """
+    Evaluate a single mini-board.
+
+    Args:
+        miniboard (int): Index of the mini-board.
+        player (int): Player ID (1 or 2).
+        move_hist (list): List of previous moves.
+
+    Returns:
+        float: Evaluation score for the mini-board.
+    """
     sum = 0
     multiplier = 1
     # Set a multiplier
@@ -141,8 +179,18 @@ def evaluate_miniboard(miniboard, player, move_hist):
     return sum + np.random.rand()
 
 
-# This functions evaluates the whole board
+# Evaluate the whole board
 def evaluate_board(depth, move_hist):
+    """
+    Evaluate the entire game board.
+
+    Args:
+        depth (int): Current depth in the search tree.
+        move_hist (list): List of previous moves.
+
+    Returns:
+        float: Evaluation score for the board.
+    """
     sum = 0
     if depth != 0:
         if game_won(1, boards, move_hist[-1]):
@@ -156,10 +204,17 @@ def evaluate_board(depth, move_hist):
 
 
 # AI turn
-# This function will call the minimax function
-# After all the calculations are done, the move with the highest score is used
-# You need to figure out how to give each move a score in evaluate_board
 def next_move(player, depth):
+    """
+    Determine the next move for the AI player.
+
+    Args:
+        player (int): Player ID (1 or 2).
+        depth (int): Depth limit for minimax search.
+
+    Returns:
+        int: Next move for the AI.
+    """
     best_score = float("-inf")
     best_move = None
     for move in possible_moves(boards, curr):
@@ -180,6 +235,19 @@ def next_move(player, depth):
 
 # Minimax Recursive Algorithm
 def minimax(depth, alpha, beta, is_maximising, move_hist):
+    """
+    Minimax algorithm with alpha-beta pruning.
+
+    Args:
+        depth (int): Current depth in the search tree.
+        alpha (float): Alpha value for pruning.
+        beta (float): Beta value for pruning.
+        is_maximising (bool): Whether it's the maximizing player's turn.
+        move_hist (list): List of previous moves.
+
+    Returns:
+        float: Minimax evaluation score.
+    """
     if (
         depth == 0
         or game_won(1, boards, move_hist[-1])
@@ -214,8 +282,14 @@ def minimax(depth, alpha, beta, is_maximising, move_hist):
         return min_eval
 
 
-# choose a move to play
+# Choose a move to play
 def play():
+    """
+    Choose and play the next move.
+
+    Returns:
+        int: Next move to play.
+    """
     # Calculate the next move
     # Currently max depth is hard set at 5
     global max_depth
@@ -225,15 +299,34 @@ def play():
     return n
 
 
-# place a move in the global boards
+# Place a move in the global boards
 def place(board, num, player):
+    """
+    Place a move on the game board.
+
+    Args:
+        board (int): Index of the mini-board.
+        num (int): Cell number to place the move.
+        player (int): Player ID (1 or 2).
+    """
     global curr
     curr = num
     boards[board][num] = player
 
 
-# check if one cell is won
+# Check if one cell is won
 def game_won(p, bd, curr):
+    """
+    Check if a player has won a mini-board.
+
+    Args:
+        p (int): Player ID (1 or 2).
+        bd (numpy.ndarray): The game board.
+        curr (int): Index of the mini-board.
+
+    Returns:
+        bool: True if player has won, False otherwise.
+    """
     return (
         (bd[curr][1] == p and bd[curr][2] == p and bd[curr][3] == p)
         or (bd[curr][4] == p and bd[curr][5] == p and bd[curr][6] == p)
@@ -246,9 +339,17 @@ def game_won(p, bd, curr):
     )
 
 
-# read what the server sent us and
-# parse only the strings that are necessary
+# Parse input commands from the server
 def parse(string):
+    """
+    Parse input commands from the server.
+
+    Args:
+        string (str): Input string from the server.
+
+    Returns:
+        int: Next move to play or game state.
+    """
     if "(" in string:
         command, args = string.split("(")
         args = args.split(")")[0]
@@ -256,23 +357,12 @@ def parse(string):
     else:
         command, args = string, []
 
-    # init tells us that a new game is about to begin.
-    # start(x) or start(o) tell us whether we will be playing first (x)
-    # or second (o); we might be able to ignore start if we internally
-    # use 'X' for *our* moves and 'O' for *opponent* moves.
-
-    # second_move(K,L) means that the (randomly generated)
-    # first move was into square L of sub-board K,
-    # and we are expected to return the second move.
     if command == "second_move":
         # place the first move (randomly generated for opponent)
         print(f"first move was {int(args[0]), int(args[1])}")
         place(int(args[0]), int(args[1]), 2)
         return play()  # choose and return the second move
 
-    # third_move(K,L,M) means that the first and second move were
-    # in square L of sub-board K, and square M of sub-board L,
-    # and we are expected to return the third move.
     elif command == "third_move":
         # place the first move (randomly generated for us)
         place(int(args[0]), int(args[1]), 1)
@@ -282,9 +372,6 @@ def parse(string):
         place(curr, int(args[2]), 2)
         return play()  # choose and return the third move
 
-    # nex_move(M) means that the previous move was into
-    # square M of the designated sub-board,
-    # and we are expected to return the next move.
     elif command == "next_move":
         # place the previous move (chosen by opponent)
         place(curr, int(args[0]), 2)
@@ -301,8 +388,11 @@ def parse(string):
     return 0
 
 
-# Connect to socket
+# Connect to socket and play the game
 def main():
+    """
+    Main function to connect to the server and play the game.
+    """
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     port = int(sys.argv[2])  # Usage: ./agent.py -p (port)
 
